@@ -20,9 +20,15 @@ namespace lesson.Controllers
         }
 
         // GET: summaryItems
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(bool showall=false)
         {
-            var applicationDbContext = _context.Summaries.Include(s => s.lessonName);
+            ViewBag.Showall = showall;
+            var applicationDbContext = _context.Summaries.Include(s => s.lessonName).AsQueryable();
+                if (!showall)
+            {
+                applicationDbContext = applicationDbContext.Where(t => !t.Worked);
+            }
+               
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -48,7 +54,7 @@ namespace lesson.Controllers
         // GET: summaryItems/Create
         public IActionResult Create()
         {
-            ViewData["lessonNameId"] = new SelectList(_context.LessonNames, "Id", "Name");
+            ViewBag.lessonNameSelectList = new SelectList(_context.LessonNames, "Id", "Name");
             return View();
         }
 
@@ -151,7 +157,27 @@ namespace lesson.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        public async Task<IActionResult>MakeWorked(int id, bool showAll)
+        {
+            return await ChangeStatus(id, true, showAll);
+        }
+        public async Task<IActionResult> MakeNotWorked(int id, bool showAll)
+        {
+            return await ChangeStatus(id, false,showAll);
+        }
+        private async Task<IActionResult> ChangeStatus(int id, bool status, bool currentShowallValue)
+        {
+            var summaryItemItem = _context.Summaries.FirstOrDefault(t => t.Id == id);
+            if (summaryItemItem == null)
+            {
+                return NotFound();
+            }
+            summaryItemItem.Worked = status;
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index), new { showall=currentShowallValue});
+        }
 
+      
         private bool summaryItemExists(int id)
         {
             return _context.Summaries.Any(e => e.Id == id);
