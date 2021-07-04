@@ -20,16 +20,20 @@ namespace lesson.Controllers
         }
 
         // GET: summaryItems
-        public async Task<IActionResult> Index(bool showall=false)
+        public async Task<IActionResult> Index(SearchViewModel searchModel)
         {
-            ViewBag.Showall = showall;
-            var applicationDbContext = _context.Summaries.Include(s => s.lessonName).AsQueryable();
-                if (!showall)
+            
+            var query = _context.Summaries.Include(s => s.lessonName).AsQueryable();
+                if (!searchModel.ShowAll)
             {
-                applicationDbContext = applicationDbContext.Where(t => !t.Worked);
+                query = query.Where(t => !t.Worked);
             }
-               
-            return View(await applicationDbContext.ToListAsync());
+            if (!String.IsNullOrWhiteSpace(searchModel.SearchText))
+            {
+                query = query.Where(t => t.Title.Contains(searchModel.SearchText));
+            }
+            searchModel.Result = await query.ToListAsync();
+            return View(searchModel);
         }
 
         // GET: summaryItems/Details/5

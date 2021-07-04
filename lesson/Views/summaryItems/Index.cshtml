@@ -1,4 +1,4 @@
-﻿@model IEnumerable<lesson.Models.summaryItem>
+﻿@model SearchViewModel 
 
 @{
     ViewData["Title"] = "Index";
@@ -11,7 +11,7 @@
 </p>
 
 <p>
-    @if (ViewBag.Showall)
+    @if (Model.ShowAll)
     {
         <a asp-action="Index" asp-route-showall="false">Hide Worked Summaries</a>
 
@@ -23,27 +23,41 @@
 
 </p>
 
+@*<form asp-action="Index" asp-controller="summaryItems" method="get">
+    <div class="form-group">   
+        <label asp-for="SearchText" class="control-label"></label>
+        <input asp-for="SearchText" class="form-control" />
+    </div>
+    <div class="form-group" style="vertical-align:initial">
+        <label asp-for="ShowAll" class="control-label"></label>
+        <input asp-for="ShowAll" class="form-control" style="vertical-align:initial" />
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Search" class="btn btn-primary" />
+    </div>
+</form>*@
+
     <table class="table">
         <thead>
             <tr>
                 <th>
-                    @Html.DisplayNameFor(model => model.lessonName)
+                    Lesson Name
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Title)
+                    Title
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Content)
+                    Context
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Worked)
+                    Worked
                 </th>
 
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @foreach (var item in Model.Result)
             {
                 <tr>
                     <td>
@@ -69,11 +83,11 @@
                     <td>
                         @if (item.Worked)
                         {
-                            <a asp-action="MakeNotWorked" asp-route-id="@item.Id" asp-route-showAll="@ViewBag.Showall">NotWorked</a>
+                            <a asp-action="MakeNotWorked" asp-route-id="@item.Id" asp-route-showAll="@Model.ShowAll">NotWorked</a>
                         }
                         else
                         {
-                            <a asp-action="MakeWorked" asp-route-id="@item.Id" asp-route-showAll="@ViewBag.Showall">Worked</a>
+                            <a asp-action="MakeWorked" asp-route-id="@item.Id" asp-route-showAll="@Model.ShowAll">Worked</a>
                         }
 
                         |   <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |

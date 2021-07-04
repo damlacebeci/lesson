@@ -1,4 +1,6 @@
-﻿@{
+﻿@model IEnumerable<lesson.Models.summaryItem>
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -6,3 +8,47 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+@if (!Model.Any())
+{
+<div class="text-center">
+    <h1 class="display-4"> Congratulations!!! You completed all! </h1>
+  
+</div>
+}
+else {
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.lessonName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Content)
+            </th>
+        
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <th>
+                @Html.DisplayFor(modelItem => item.lessonName.Name)
+            </th>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Content)
+            </td>
+
+
+        </tr>
+        }
+    </tbody>
+</table>
+}

@@ -27,7 +27,15 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="summaryItems" asp-action="Index">Summaries</a>
                         </li>
+
+                      
                     </ul>
+
+                    <form asp-controller="summaryItems" asp-action="Index" method="get">
+                        <input name="SearchText" id="SearchText" />
+                        <input name="ShowAll" id="ShowAll" type="hidden" value="true" />
+                        <input type="submit" value="Search" />
+                    </form>
                     <partial name="_LoginPartial" />
                 </div>
             </div>
