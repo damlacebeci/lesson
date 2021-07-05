@@ -23,6 +23,8 @@ namespace lesson.Models
         
         public int lessonNameId { get; set; }
         public virtual lessonName lessonName { get; set; }
+        public string lessonUserId { get; set; }
+        public virtual lessonUser LessonUser { get; set; }
 
     }
 }

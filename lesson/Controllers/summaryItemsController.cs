@@ -7,23 +7,28 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using lesson.Data;
 using lesson.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace lesson.Controllers
 {
+    [Authorize]
     public class summaryItemsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<lessonUser> _userManager;
 
-        public summaryItemsController(ApplicationDbContext context)
+        public summaryItemsController(ApplicationDbContext context, UserManager<lessonUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
-
+        
         // GET: summaryItems
         public async Task<IActionResult> Index(SearchViewModel searchModel)
         {
-            
-            var query = _context.Summaries.Include(s => s.lessonName).AsQueryable();
+            var lessonUser = await _userManager.GetUserAsync(HttpContext.User);
+            var query = _context.Summaries.Include(s => s.lessonName).Where(t=> t.lessonUserId== lessonUser.Id);
                 if (!searchModel.ShowAll)
             {
                 query = query.Where(t => !t.Worked);
@@ -56,6 +61,7 @@ namespace lesson.Controllers
         }
 
         // GET: summaryItems/Create
+        [Authorize]
         public IActionResult Create()
         {
             ViewBag.lessonNameSelectList = new SelectList(_context.LessonNames, "Id", "Name");
@@ -67,8 +73,11 @@ namespace lesson.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("Id,Title,Content,Worked,lessonNameId")] summaryItem summaryItem)
         {
+            var lessonUser = await _userManager.GetUserAsync(HttpContext.User);
+            summaryItem.lessonUserId = lessonUser.Id;
             if (ModelState.IsValid)
             {
                 _context.Add(summaryItem);
@@ -88,6 +97,14 @@ namespace lesson.Controllers
             }
 
             var summaryItem = await _context.Summaries.FindAsync(id);
+          
+            var currentUser = await _userManager.GetUserAsync(HttpContext.User);
+            if (summaryItem.lessonUserId != currentUser.Id)
+            {
+                return Unauthorized();
+
+            }
+
             if (summaryItem == null)
             {
                 return NotFound();
@@ -101,7 +118,7 @@ namespace lesson.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Worked,lessonNameId")] summaryItem summaryItem)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Worked,lessonNameId,lessonUserId")] summaryItem summaryItem)
         {
             if (id != summaryItem.Id)
             {
@@ -112,7 +129,19 @@ namespace lesson.Controllers
             {
                 try
                 {
-                    _context.Update(summaryItem);
+                    var oldSummary = await _context.Summaries.FindAsync(id);
+                    var currentUser = await _userManager.GetUserAsync(HttpContext.User);
+                    if(oldSummary.lessonUserId != currentUser.Id)
+                    {
+                        return Unauthorized();
+
+                    }
+                    oldSummary.Title = summaryItem.Title;
+                    oldSummary.lessonNameId = summaryItem.lessonNameId;
+                    oldSummary.Worked = summaryItem.Worked;
+                    oldSummary.Content = summaryItem.Content;
+                    
+                    _context.Update(oldSummary);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
